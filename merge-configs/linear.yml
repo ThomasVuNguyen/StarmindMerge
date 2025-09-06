@@ -1,0 +1,12 @@
+models:
+  - model: mnoukhov/SmolLM2-135M-Instruct_tldr-sft
+    parameters:
+      weight: 1.0
+  - model: HuggingFaceTB/SmolLM2-135M-Instruct
+    parameters:
+      weight: 1.0
+  - model: HuggingFaceTB/SmolLM2-135M
+    parameters:
+      weight: 1.0
+merge_method: linear
+dtype: float16
