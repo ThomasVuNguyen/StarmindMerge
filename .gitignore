@@ -1,2 +1,5 @@
 */myenv/
 */__pycache__/
+myenv/
+__pycache__/
+sft/sft_output/

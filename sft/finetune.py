@@ -46,7 +46,7 @@ os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
 sft_config = SFTConfig(
     output_dir="./sft_output",
     num_train_epochs=1,
-    per_device_train_batch_size=3,  # Set according to your GPU memory capacity
+    per_device_train_batch_size=2,  # Set according to your GPU memory capacity
     learning_rate=5e-5,  # Common starting point for fine-tuning
     logging_steps=100,  # Frequency of logging training metrics
     use_mps_device= True if device == "mps" else False,

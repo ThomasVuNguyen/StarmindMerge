@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class Smollm2Chat:
-    def __init__(self, model_name="ThomasTheMaker/smollm2-135m-soup1"):
+    def __init__(self, model_name="ThomasTheMaker/Smollm2-135M-concise-reasoning"):
         """Initialize the chat interface with the smollm2 model"""
         print(f"Loading {model_name}...")
         
