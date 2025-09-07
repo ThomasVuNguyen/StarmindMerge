@@ -1,5 +1,5 @@
 # Import necessary libraries
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig, pipeline
 from datasets import load_dataset
 from trl import SFTConfig, SFTTrainer, setup_chat_format
 from peft import LoraConfig
@@ -11,24 +11,24 @@ import os
 # =============================================================================
 
 # Model configuration
-MODEL_NAME = "HuggingFaceTB/SmolLM2-135M"
+MODEL_NAME = "HuggingFaceTB/SmolLM2-360M"
 
 # Dataset configuration
 DATASET_NAME = "allenai/tulu-3-sft-personas-instruction-following"
 
-# Chat template configuration
-CHAT_TEMPLATE = "{% for message in messages %}{% if message['role'] == 'system' %}{{ '<|system|>\n' + message['content'] + '\n' }}{% elif message['role'] == 'user' %}{{ '<|user|>\n' + message['content'] + '\n' }}{% elif message['role'] == 'assistant' %}{% if not loop.last %}{{ '<|assistant|>\n'  + message['content'] + eos_token + '\n' }}{% else %}{{ '<|assistant|>\n'  + message['content'] + eos_token }}{% endif %}{% endif %}{% if loop.last and add_generation_prompt %}{{ '<|assistant|>\n' }}{% endif %}{% endfor %}"
+# Chat template configuration - Use SmolLM2's standard format
+CHAT_TEMPLATE = "{% for message in messages %}{% if loop.first and messages[0]['role'] != 'system' %}{{ '<|im_start|>system\nYou are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>\n' }}{% endif %}{{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}"
 
 # Training configuration
-OUTPUT_DIR = "./Smollm2-135M-Tulu-3-SFT-Personas-Instruction-Following"
-9NUM_TRAIN_EPOCHS = 1
+OUTPUT_DIR = "./Smollm2-360M-Tulu-3-SFT-Personas-Instruction-Following"
+NUM_TRAIN_EPOCHS = 1
 PER_DEVICE_TRAIN_BATCH_SIZE = 1  # Set according to your GPU memory capacity
 LEARNING_RATE = 5e-5  # Common starting point for fine-tuning
 LOGGING_STEPS = 100  # Frequency of logging training metrics
-HUB_MODEL_ID = "ThomasTheMaker/Smollm2-135M-Tulu-3-SFT-Personas-Instruction-Following"  # Set a unique name for your model
+HUB_MODEL_ID = "ThomasTheMaker/Smollm2-360M-Tulu-3-SFT-Personas-Instruction-Following"  # Set a unique name for your model
 PUSH_TO_HUB = True
 
-# Test prompt configuration99
+# Test prompt configuration
 TEST_PROMPT = "What is the primary function of mitochondria within a cell?"
 MAX_NEW_TOKENS = 100
 
@@ -50,8 +50,15 @@ tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=MODEL_NA
 # Set up the chat format
 model, tokenizer = setup_chat_format(model=model, tokenizer=tokenizer)
 
-# Override the chat template with our custom format
+# Override the chat template with SmolLM2's standard format
 tokenizer.chat_template = CHAT_TEMPLATE
+
+# Ensure proper padding token setup
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.unk_token if tokenizer.unk_token is not None else tokenizer.eos_token
+    tokenizer.pad_token_id = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
+
+print(f"✅ Tokenizer setup - pad_token: {tokenizer.pad_token}, eos_token: {tokenizer.eos_token}")
 
 # Test the base model before training
 pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=device)
@@ -117,6 +124,13 @@ trainer.train()
 # Save the model and tokenizer with the chat template
 trainer.save_model()
 tokenizer.save_pretrained(OUTPUT_DIR)
+
+# Save the model configuration to ensure proper model loading
+# Get the original model config and update it with our fine-tuned model info
+config = AutoConfig.from_pretrained(MODEL_NAME)
+config._name_or_path = HUB_MODEL_ID
+config.save_pretrained(OUTPUT_DIR)
+print(f"✅ Model configuration saved to {OUTPUT_DIR}/config.json")
 
 # Test the fine-tuned model
 pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
