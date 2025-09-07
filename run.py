@@ -11,7 +11,11 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class Smollm2Chat:
-    def __init__(self, model_name="ThomasTheMaker/Smollm2-135M-concise-reasoning"):
+    def __init__(self, model_name=
+    #"ThomasTheMaker/smollm2-135m-soup1"
+    "ThomasTheMaker/Smollm2-135M-concise-reasoning"
+    # "HuggingFaceTB/SmolLM2-135M-Instruct"
+    ):
         """Initialize the chat interface with the smollm2 model"""
         print(f"Loading {model_name}...")
         
@@ -31,8 +35,15 @@ class Smollm2Chat:
         print("Model loaded successfully!")
         print("=" * 50)
     
-    def generate_response(self, prompt, max_length=512, temperature=0.7, top_p=0.9):
+    def generate_response(self, messages, max_length=512, temperature=0.7, top_p=0.9):
         """Generate a response from the model"""
+        # Apply chat template
+        prompt = self.tokenizer.apply_chat_template(
+            messages, 
+            tokenize=False, 
+            add_generation_prompt=True
+        )
+        
         # Tokenize input
         inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.model.device)
         
@@ -50,11 +61,12 @@ class Smollm2Chat:
             )
         
         # Decode response
-        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        full_response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         
-        # Remove the input prompt from the response
-        if prompt in response:
-            response = response[len(prompt):].strip()
+        # Extract only the new generated text (everything after the input)
+        input_length = inputs.shape[1]
+        generated_tokens = outputs[0][input_length:]
+        response = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
         
         return response
     
@@ -65,7 +77,7 @@ class Smollm2Chat:
         print("Type 'clear' to clear the conversation history")
         print("=" * 50)
         
-        conversation_history = []
+        messages = []
         
         while True:
             try:
@@ -79,7 +91,7 @@ class Smollm2Chat:
                 
                 # Check for clear command
                 if user_input.lower() in ['clear', 'reset']:
-                    conversation_history = []
+                    messages = []
                     print("🧹 Conversation history cleared!")
                     continue
                 
@@ -87,20 +99,20 @@ class Smollm2Chat:
                 if not user_input:
                     continue
                 
-                # Add to conversation history
-                conversation_history.append(f"Human: {user_input}")
+                # Add user message to conversation
+                messages.append({"role": "user", "content": user_input})
                 
-                # Create context from recent conversation (last 4 exchanges)
-                recent_context = "\n".join(conversation_history[-8:])  # Last 4 exchanges
-                full_prompt = f"{recent_context}\nAssistant:"
+                # Keep only last 8 messages for context (4 exchanges)
+                if len(messages) > 8:
+                    messages = messages[-8:]
                 
                 print("🤖 Smollm2: ", end="", flush=True)
                 
                 # Generate response
-                response = self.generate_response(full_prompt)
+                response = self.generate_response(messages)
                 
-                # Add response to history
-                conversation_history.append(f"Assistant: {response}")
+                # Add assistant response to history
+                messages.append({"role": "assistant", "content": response})
                 
                 # Print response
                 print(response)
