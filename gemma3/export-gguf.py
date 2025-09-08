@@ -15,23 +15,32 @@ def create_gguf_directory():
 
 def load_model():
     """Load the fine-tuned Gemma3 270M model"""
+    # Variables
+    model_name = "ThomasTheMaker/gemma-3-270m-tulu-3-sft-personas-code"
+    max_seq_length = 2048
+    load_in_4bit = False
+    
     print("Loading model...")
     model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name="ThomasTheMaker/gemma-3-270m-tulu-3-sft-personas-instruction-following",
-        max_seq_length=2048,
-        load_in_4bit=False,
+        model_name=model_name,
+        max_seq_length=max_seq_length,
+        load_in_4bit=load_in_4bit,
     )
     print("Model loaded successfully!")
     return model, tokenizer
 
 def convert_to_gguf(model, tokenizer, quantization_type="Q8_0"):
     """Convert model to GGUF format"""
+    # Variables
+    base_model_name = "gemma-3-270m-tulu-3-sft-personas-code"
+    gguf_directory = "gguf"
+    
     # Create the main gguf directory if it doesn't exist
-    os.makedirs("gguf", exist_ok=True)
+    os.makedirs(gguf_directory, exist_ok=True)
     
     # Create a temporary directory for the model, then convert to GGUF
     temp_model_dir = f"temp_model_{quantization_type.lower()}"
-    final_filename = f"gguf/gemma-3-270m-tulu-3-sft-personas-instruction-following-{quantization_type.lower()}.gguf"
+    final_filename = f"{gguf_directory}/{base_model_name}-{quantization_type.lower()}.gguf"
     
     print(f"Converting to GGUF format with {quantization_type} quantization...")
     print(f"Target file: {final_filename}")
@@ -92,19 +101,19 @@ def convert_to_gguf(model, tokenizer, quantization_type="Q8_0"):
 
 def main():
     """Main conversion function"""
-    # Create gguf directory
-    create_gguf_directory()
-    
-    # Load model
-    model, tokenizer = load_model()
-    
-    # Available quantization types (only those supported by unsloth)
+    # Variables
     quantization_types = [
         "F32",      # Full 32-bit precision (largest file)
         "F16",      # Full 16-bit precision 
         "BF16",     # Brain Float 16-bit precision
         "Q8_0",     # 8-bit quantization (smallest supported)
     ]
+    
+    # Create gguf directory
+    create_gguf_directory()
+    
+    # Load model
+    model, tokenizer = load_model()
     
     print("\nAvailable quantization types (ordered by quality/size):")
     for i, qtype in enumerate(quantization_types, 1):

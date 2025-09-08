@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-Dataset Reformatting Script
-Converts allenai/tulu-3-sft-personas-instruction-following from messages format to input/output/system format
-"""
-
 from datasets import load_dataset, Dataset
 from huggingface_hub import HfApi
 import os
@@ -15,9 +9,9 @@ def reformat_dataset():
     """
     
     # Variables
-    dataset_name = "allenai/tulu-3-sft-personas-code"
-    repo_id = "ThomasTheMaker/tulu-3-sft-personas-code"
-    local_path = "./tulu-3-sft-personas-code"
+    dataset_name = "allenai/tulu-3-sft-personas-math"
+    repo_id = "ThomasTheMaker/tulu-3-sft-personas-math"
+    local_path = "./tulu-3-sft-personas-math"
     default_system_message = "You are a helpful AI assistant."
     
     print("🔄 Loading dataset...")
