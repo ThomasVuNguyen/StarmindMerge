@@ -35,8 +35,8 @@ OUTPUT_DIR = "outputs"
 REPORT_TO = "none"  # Use this for WandB etc
 
 # Dataset Configuration
-DATASET_NAME = "ThomasTheMaker/tulu-3-sft-personas-instruction-following"
-DATASET_SPLIT = "train[:30000]"  # Adjust size as needed
+DATASET_NAME = "ThomasTheMaker/tulu-3-sft-personas-code"
+DATASET_SPLIT = "train[:35000]"  # Adjust size as needed
 CHAT_TEMPLATE = "gemma3"  # Supported: zephyr, chatml, mistral, llama, alpaca, vicuna, vicuna_old, phi3, llama3, phi4, qwen2.5, gemma3
 
 # Inference Configuration
@@ -52,7 +52,7 @@ SAVE_16BIT = True
 SAVE_4BIT = False
 SAVE_LORA = False
 PUSH_TO_HUB = True  # Requires HF_TOKEN in environment
-HUB_MODEL_NAME = "ThomasTheMaker/gemma-3-270m-tulu-3-sft-personas-instruction-following"
+HUB_MODEL_NAME = "ThomasTheMaker/gemma-3-270m-tulu-3-sft-personas-code"
 
 # Available Models (for reference)
 FOURBIT_MODELS = [

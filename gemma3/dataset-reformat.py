@@ -14,9 +14,15 @@ def reformat_dataset():
     and upload to Hugging Face Hub
     """
     
+    # Variables
+    dataset_name = "allenai/tulu-3-sft-personas-code"
+    repo_id = "ThomasTheMaker/tulu-3-sft-personas-code"
+    local_path = "./tulu-3-sft-personas-code"
+    default_system_message = "You are a helpful AI assistant."
+    
     print("🔄 Loading dataset...")
     # Load the original dataset
-    dataset = load_dataset("allenai/tulu-3-sft-personas-instruction-following")
+    dataset = load_dataset(dataset_name)
     
     print(f"📊 Original dataset size: {len(dataset['train'])} samples")
     
@@ -45,7 +51,7 @@ def reformat_dataset():
         
         # If no system message, use a default
         if not system_text:
-            system_text = "You are a helpful AI assistant."
+            system_text = default_system_message
         
         return {
             "input": input_text,
@@ -74,8 +80,6 @@ def reformat_dataset():
     print(f"✅ Reformatted dataset created with {len(new_dataset)} samples")
     
     # Upload to Hugging Face Hub
-    repo_id = "ThomasTheMaker/tulu-3-sft-personas-instruction-following"
-    
     print(f"🚀 Uploading to {repo_id}...")
     
     try:
@@ -93,7 +97,6 @@ def reformat_dataset():
         print("   export HF_TOKEN=your_token_here")
         
         # Save locally as backup
-        local_path = "./tulu-3-sft-personas-instruction-following-reformatted"
         new_dataset.save_to_disk(local_path)
         print(f"💾 Dataset saved locally to {local_path}")
 
