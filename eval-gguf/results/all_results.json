@@ -1,0 +1,25 @@
+{
+  "metadata": {
+    "timestamp": "2025-09-08T17:21:13.492252",
+    "total_models": 1,
+    "version": "1.0"
+  },
+  "models": {
+    "gemma-3-270m-it-q8_0": {
+      "model_path": "gguf/gemma-3-270m-it-q8_0.gguf",
+      "model_name": "gemma-3-270m-it-q8_0",
+      "tasks": {
+        "MMLU": {
+          "score": "29.3928 +/- 1.1582",
+          "execution_time_seconds": 70,
+          "score_numeric": 29.3928
+        },
+        "Hellaswag": {
+          "score": "38.00000000%\t[33.3787%, 42.8495%]",
+          "execution_time_seconds": 42,
+          "score_numeric": 38.0
+        }
+      }
+    }
+  }
+}

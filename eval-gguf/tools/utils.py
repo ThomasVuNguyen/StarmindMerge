@@ -1,8 +1,10 @@
+import json
 import os
 import pickle
 import subprocess
 import sys
 import warnings
+from datetime import datetime
 
 import numpy as np
 
@@ -382,6 +384,53 @@ class Archive:
         with open(self.path + "_", "wb") as f:
             pickle.dump(self.content, f)
         os.rename(self.path + "_", self.path)
+
+    def save_json(self, results_dir: str = "results"):
+        """Save evaluation results to JSON format in results directory."""
+        os.makedirs(results_dir, exist_ok=True)
+        
+        # Create a comprehensive results structure
+        results = {
+            "metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "total_models": len(self.content),
+                "version": "1.0"
+            },
+            "models": {}
+        }
+        
+        for model_path, model_data in self.content.items():
+            # Extract model name from path
+            model_name = model_path.rsplit("/")[-1].rsplit(".", 1)[0].rsplit("-00001-of-", 1)[0]
+            
+            model_results = {
+                "model_path": model_path,
+                "model_name": model_name,
+                "tasks": {}
+            }
+            
+            for task_name, task_data in model_data.items():
+                if isinstance(task_data, list) and len(task_data) >= 2:
+                    model_results["tasks"][task_name] = {
+                        "score": task_data[0],
+                        "execution_time_seconds": task_data[1],
+                        "score_numeric": parse_score(task_data[0])
+                    }
+            
+            results["models"][model_name] = model_results
+        
+        # Save individual model files
+        for model_name, model_data in results["models"].items():
+            model_file = os.path.join(results_dir, f"{model_name}_results.json")
+            with open(model_file, "w") as f:
+                json.dump(model_data, f, indent=2)
+        
+        # Save comprehensive results file
+        results_file = os.path.join(results_dir, "all_results.json")
+        with open(results_file, "w") as f:
+            json.dump(results, f, indent=2)
+        
+        print(f"Results saved to {results_dir}/ directory")
 
     def __contains__(self, key: str) -> bool:
         return key in self.content

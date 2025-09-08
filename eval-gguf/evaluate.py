@@ -29,7 +29,7 @@ from tools.utils import (
 def main():
     parser = argparse.ArgumentParser(description="Evaluate models on benchmarks.")
     parser.add_argument("models", nargs="+", help="Paths to GGUF model files to evaluate.")
-    parser.add_argument("--llama_path", default="", help="Path to the llama.cpp project. If not given, llama-perplexity is assumed to be provided in shell path.")
+    parser.add_argument("--llama_path", default="./llama.cpp", help="Path to the llama.cpp project (default: ./llama.cpp).")
     parser.add_argument("--quiet", action="store_true", help="Only output results, don't show progress.")
     parser.add_argument("--disable_ansi", action="store_true", help="Disable ANSI color codes in output.")
     parser.add_argument("--disable_sorting", action="store_true", help="Do not sort the outputs by the (aggregate) score before displaying them. Instead display them in the order they were given.")
@@ -37,11 +37,16 @@ def main():
     parser.add_argument("--llama_args", default="", help="Extra arguments to pass to the perplexity binary.")
     parser.add_argument("--recalc", action="store_true", help="Do not use cached values, if present.")
     parser.add_argument("--model_args", nargs="+", help="Provide model specific arguments, in the form <model search string>:<args>, e.g. --model_args GLM-4.5-Air:\"--n-cpu-moe 22\"")
+    parser.add_argument("--no_json", action="store_true", help="Disable automatic JSON export (JSON is saved by default).")
+    parser.add_argument("--results_dir", default="results", help="Directory to save JSON results (default: results).")
 
     with open("tasks.yml") as f:
         tasks = yaml.load(f, Loader=yaml.FullLoader)
     task_list = ",".join(task['name'].lower() for task in tasks)
     parser.add_argument("--tasks", default="all", help=f"Tasks to run. Can be a list of {task_list}, all, or a negative list such as except:{task_list}, which runs all tasks except those listed.")
+    
+    # Set default tasks to MMLU for simplicity
+    parser.set_defaults(tasks="mmlu")
 
     args = parser.parse_args()
     fa_flag = "" if args.disable_flash_attention else "-fa auto"
@@ -174,6 +179,10 @@ def main():
     else:
         sep = '\n'
     print("==== FINAL REPORT ====\n\n" + sep.join(report).strip())
+    
+    # Save results to JSON by default (unless disabled)
+    if not args.no_json:
+        archives.save_json(args.results_dir)
 
 if __name__ == "__main__":
     main()

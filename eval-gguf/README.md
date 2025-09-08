@@ -1,16 +1,151 @@
 # gguf-eval
-python evaluate.py gguf/*.gguf --tasks mmlu --llama_path ./llama.cpp
 
 An evaluation framework for GGUF models using llama.cpp. Based of of https://github.com/kallewoof/gguf-eval
 
+## Quick Start
+
+**Just specify your model GGUF file(s) and everything else is automatic!**
+
+```bash
+# Evaluate single model on MMLU (default)
+python eval.py model.gguf
+
+# Compare multiple models
+python eval.py model1.gguf model2.gguf
+
+# Run all tasks
+python eval.py model.gguf --tasks all
+
+# Evaluate and generate plot
+python eval.py model.gguf --plot
+```
+
+## What's Automatic
+
+- ✅ **llama.cpp detection**: Automatically finds `./llama.cpp`
+- ✅ **JSON results**: Automatically saved to `results/` directory
+- ✅ **Default tasks**: MMLU evaluation by default
+- ✅ **Plotting**: Uses JSON results by default
+
+## JSON Results Format
+
+Results are automatically saved in structured JSON format for easy analysis and sharing:
+
+### Individual Model Files (`{model_name}_results.json`)
+```json
+{
+  "model_path": "gguf/model-name.gguf",
+  "model_name": "model-name",
+  "tasks": {
+    "MMLU": {
+      "score": "78.5%",
+      "execution_time_seconds": 120,
+      "score_numeric": 78.5
+    },
+    "Hellaswag": {
+      "score": "82.3%",
+      "execution_time_seconds": 95,
+      "score_numeric": 82.3
+    }
+  }
+}
+```
+
+### Comprehensive Results File (`all_results.json`)
+```json
+{
+  "metadata": {
+    "timestamp": "2024-01-15T10:30:45.123456",
+    "total_models": 2,
+    "version": "1.0"
+  },
+  "models": {
+    "model-name-1": {
+      "model_path": "gguf/model-name-1.gguf",
+      "model_name": "model-name-1",
+      "tasks": {
+        "MMLU": {
+          "score": "78.5%",
+          "execution_time_seconds": 120,
+          "score_numeric": 78.5
+        }
+      }
+    }
+  }
+}
+```
+
+## Advanced Usage
+
+For more control, use the original scripts directly:
+
+```bash
+# Direct evaluation with custom options
+python evaluate.py model.gguf --tasks mmlu --llama_path ./llama.cpp
+
+# Plot with custom options  
+python plot.py model.gguf --tasks mmlu
+
+# Disable automatic JSON export
+python evaluate.py model.gguf --no_json
+
+# Use pickle archive instead of JSON
+python plot.py model.gguf --use_pickle
+```
+
+## Analyzing Results
+
+The JSON format makes it easy to analyze results programmatically:
+
+```bash
+# Quick score comparison
+python -c "
+import json
+with open('results/all_results.json', 'r') as f:
+    data = json.load(f)
+    for model, results in data['models'].items():
+        print(f'{model}: {results[\"tasks\"][\"MMLU\"][\"score_numeric\"]}%')
+"
+
+# Export to CSV
+python -c "
+import json
+import csv
+with open('results/all_results.json', 'r') as f:
+    data = json.load(f)
+with open('results.csv', 'w', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(['Model', 'MMLU', 'Hellaswag', 'Winogrande'])
+    for model, results in data['models'].items():
+        tasks = results['tasks']
+        writer.writerow([
+            model,
+            tasks.get('MMLU', {}).get('score_numeric', 0),
+            tasks.get('Hellaswag', {}).get('score_numeric', 0),
+            tasks.get('Winogrande', {}).get('score_numeric', 0)
+        ])
+"
+```
+
+## Available Tasks
+
+The following benchmark tasks are available:
+
+- **MMLU** (default): Massive Multitask Language Understanding
+- **Hellaswag**: Commonsense reasoning
+- **Winogrande**: Pronoun resolution
+- **TruthfulQA**: Truthfulness in question answering
+- **ARC-Combined**: AI2 Reasoning Challenge (combined)
+- **ARC-Challenge**: AI2 Reasoning Challenge (challenge set)
+
 ## Getting Started
 
-1. Install llama.cpp.
+1. Install llama.cpp in the same directory as this script.
 2. Clone this repository: `git clone https://github.com/kallewoof/gguf-eval.git`
 3. Change dir: `cd gguf-eval`
 4. Install requirements: `pip install -r requirements.txt`
 5. Get some models.
-6. Evaluate on all available tasks: `python evaluate.py model1.gguf model2.gguf ...`
+6. Run evaluation: `python eval.py model1.gguf model2.gguf ...`
 
 ### Details
 

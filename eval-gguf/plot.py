@@ -1,10 +1,63 @@
 import argparse
+import json
+import os
 import sys
 
 import yaml
 
 from tools.graphs import plot_model_performance
 from tools.utils import Archive, parse_score, parse_task_list
+
+
+def load_json_results(results_dir: str, models: list[str], tasks: list[dict]) -> dict[str, list[float]]:
+    """Load performance data from JSON results files."""
+    performance_data = {}
+    
+    # Load the comprehensive results file
+    all_results_file = os.path.join(results_dir, "all_results.json")
+    if os.path.exists(all_results_file):
+        with open(all_results_file, "r") as f:
+            all_results = json.load(f)
+        
+        for model_path in models:
+            # Extract model name from path
+            model_name = model_path.rsplit("/")[-1].rsplit(".", 1)[0].rsplit("-00001-of-", 1)[0]
+            
+            if model_name in all_results["models"]:
+                model_data = all_results["models"][model_name]
+                scores = []
+                for task in tasks:
+                    task_name = task['name']
+                    if task_name in model_data["tasks"]:
+                        scores.append(model_data["tasks"][task_name]["score_numeric"])
+                    else:
+                        scores.append(0.0)  # Default score if task not found
+                performance_data[model_name] = scores
+            else:
+                print(f"Warning: No results found for model {model_name}")
+                performance_data[model_name] = [0.0] * len(tasks)
+    else:
+        print(f"Warning: Results file {all_results_file} not found")
+        # Fallback: try individual model files
+        for model_path in models:
+            model_name = model_path.rsplit("/")[-1].rsplit(".", 1)[0].rsplit("-00001-of-", 1)[0]
+            model_file = os.path.join(results_dir, f"{model_name}_results.json")
+            if os.path.exists(model_file):
+                with open(model_file, "r") as f:
+                    model_data = json.load(f)
+                scores = []
+                for task in tasks:
+                    task_name = task['name']
+                    if task_name in model_data["tasks"]:
+                        scores.append(model_data["tasks"][task_name]["score_numeric"])
+                    else:
+                        scores.append(0.0)
+                performance_data[model_name] = scores
+            else:
+                print(f"Warning: No results found for model {model_name}")
+                performance_data[model_name] = [0.0] * len(tasks)
+    
+    return performance_data
 
 
 def main():
@@ -14,6 +67,9 @@ def main():
     parser.add_argument("--renderer", default="browser", help="How to render the graph. Can be one of: png, svg, notebook, browser. Default: browser.")
     parser.add_argument("--save_to", type=str, help="Save the resulting plot to disk as the given filename.")
     parser.add_argument("--normalization", type=str, default="none", help="Normalization: none, cap, range. none means use values as is (78% means 78% on the score). cap means anchor scores so that 100% is the best performing model (100% means best performing model even if the model score was 10% as long as no other model was higher). range means use the min and max values of the given models as the 0% and 100% point (0% means worst performing model, even if that model had a 99% score on the given task).")
+    parser.add_argument("--use_pickle", action="store_true", help="Load results from pickle archive instead of JSON (JSON is default).")
+    parser.add_argument("--results_dir", default="results", help="Directory containing JSON results (default: results).")
+    parser.add_argument("--quiet", action="store_true", help="Quiet mode (suppress output).")
 
     with open("tasks.yml") as f:
         tasks = yaml.load(f, Loader=yaml.FullLoader)
@@ -27,16 +83,24 @@ def main():
         print("No tasks. Great, we're done.")
         sys.exit(0)
 
-    archives = Archive(".profile_archives.pk")
+    if args.use_pickle:
+        # Load from pickle archive (fallback behavior)
+        archives = Archive(".profile_archives.pk")
 
-    model_names = {
-        model: model.rsplit("/")[-1].rsplit(".", 1)[0].rsplit("-00001-of-", 1)[0] for model in args.models
-    }
+        model_names = {
+            model: model.rsplit("/")[-1].rsplit(".", 1)[0].rsplit("-00001-of-", 1)[0] for model in args.models
+        }
 
-    performance_data: dict[str, list[float]] = {
-        model_names[model]: [parse_score(archives[model][task['name']][0]) for task in tasks]
-        for model in args.models
-    }
+        performance_data: dict[str, list[float]] = {
+            model_names[model]: [parse_score(archives[model][task['name']][0]) for task in tasks]
+            for model in args.models
+        }
+    else:
+        # Load from JSON results (default behavior)
+        performance_data = load_json_results(args.results_dir, args.models, tasks)
+        model_names = {
+            model: model.rsplit("/")[-1].rsplit(".", 1)[0].rsplit("-00001-of-", 1)[0] for model in args.models
+        }
 
     if args.normalization != "none":
         if args.normalization != "cap" and args.normalization != "range":
