@@ -16,7 +16,7 @@ def create_gguf_directory():
 def load_model():
     """Load the fine-tuned Gemma3 270M model"""
     # Variables
-    model_name = "ThomasTheMaker/gemma-3-270m-tulu-3-sft-personas-code"
+    model_name = "unsloth/gemma-3-270m-it"
     max_seq_length = 2048
     load_in_4bit = False
     
@@ -32,7 +32,7 @@ def load_model():
 def convert_to_gguf(model, tokenizer, quantization_type="Q8_0"):
     """Convert model to GGUF format"""
     # Variables
-    base_model_name = "gemma-3-270m-tulu-3-sft-personas-code"
+    base_model_name = "gemma-3-270m-it"
     gguf_directory = "gguf"
     
     # Create the main gguf directory if it doesn't exist

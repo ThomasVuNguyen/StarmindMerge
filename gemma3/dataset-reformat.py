@@ -9,9 +9,9 @@ def reformat_dataset():
     """
     
     # Variables
-    dataset_name = "allenai/tulu-3-sft-personas-math"
-    repo_id = "ThomasTheMaker/tulu-3-sft-personas-math"
-    local_path = "./tulu-3-sft-personas-math"
+    dataset_name = "allenai/tulu-3-hard-coded-10x"
+    repo_id = "ThomasTheMaker/tulu-3-hard-coded-10x"
+    local_path = "./tulu-3-hard-coded-10x"
     default_system_message = "You are a helpful AI assistant."
     
     print("🔄 Loading dataset...")
