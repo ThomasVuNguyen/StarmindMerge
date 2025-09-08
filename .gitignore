@@ -1,4 +1,13 @@
 myenv/
 __pycache__/
 */Smollm*/
+<<<<<<< HEAD
 unsloth*/
+=======
+unsloth*/
+gemma3/gemma*/
+gguf/
+gemma3/outputs/*
+gemma3/llama.cpp/*
+gemma3/.env
+>>>>>>> d538743 (Add .env to gitignore)
