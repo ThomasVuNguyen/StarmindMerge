@@ -15,7 +15,7 @@ class Smollm2Chat:
     #"ThomasTheMaker/smollm2-135m-soup1"
     # "ThomasTheMaker/Smollm2-135M-Tulu-3-SFT-Personas-Instruction-Following"
     # "HuggingFaceTB/SmolLM2-135M"
-    "ThomasTheMaker/Gemma3-270M-Tulu-3-SFT-Personas-Instruction-Following"
+    "ThomasTheMaker/gemma-3-270m-tulu-3-sft-personas-instruction-following"
     ):
         """Initialize the chat interface with the smollm2 model"""
         print(f"Loading {model_name}...")

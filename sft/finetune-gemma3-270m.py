@@ -238,12 +238,24 @@ text = tokenizer.apply_chat_template(
 ).removeprefix('<bos>')
 
 from transformers import TextStreamer
-_ = model.generate(
-    **tokenizer(text, return_tensors = "pt").to("cuda"),
+# Fix cache compatibility issue by using a different generation approach
+inputs = tokenizer(text, return_tensors = "pt").to("cuda")
+outputs = model.generate(
+    input_ids=inputs["input_ids"],
+    attention_mask=inputs["attention_mask"],
     max_new_tokens = 125,
-    temperature = 1, top_p = 0.95, top_k = 64,
-    streamer = TextStreamer(tokenizer, skip_prompt = True),
+    temperature = 1, 
+    top_p = 0.95, 
+    top_k = 64,
+    do_sample = True,
+    pad_token_id = tokenizer.eos_token_id,
+    use_cache = False,  # Disable cache to avoid compatibility issues
 )
+
+# Decode and print the generated text
+generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+print("Generated response:")
+print(generated_text)
 
 """<a name="Save"></a>
 ### Saving, loading finetuned models
