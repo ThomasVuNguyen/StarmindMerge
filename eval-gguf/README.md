@@ -4,27 +4,44 @@ An evaluation framework for GGUF models using llama.cpp. Based of of https://git
 
 ## Quick Start
 
-**Just specify your model GGUF file(s) and everything else is automatic!**
+**Just run the script and everything else is automatic!**
 
 ```bash
-# Evaluate single model on MMLU (default)
+# Run all models in gguf/ folder on all tasks (default)
+python eval.py
+
+# Evaluate specific model(s)
 python eval.py model.gguf
 
 # Compare multiple models
 python eval.py model1.gguf model2.gguf
 
-# Run all tasks
-python eval.py model.gguf --tasks all
+# Run specific tasks only
+python eval.py --tasks mmlu,hellaswag
 
 # Evaluate and generate plot
-python eval.py model.gguf --plot
+python eval.py --plot
 ```
+
+## Ultra-Simple Usage
+
+The absolute simplest way to use this tool:
+
+1. **Put your models in the `gguf/` folder**
+2. **Run `python eval.py`**
+
+That's it! The script will automatically:
+- Find all GGUF files in the `gguf/` folder
+- Run all benchmark tasks on all models
+- Save results to `results/` directory
+- Show you the final report
 
 ## What's Automatic
 
+- ✅ **Model discovery**: Automatically finds all GGUF files in `gguf/` folder
+- ✅ **Task selection**: Runs all available tasks by default
 - ✅ **llama.cpp detection**: Automatically finds `./llama.cpp`
 - ✅ **JSON results**: Automatically saved to `results/` directory
-- ✅ **Default tasks**: MMLU evaluation by default
 - ✅ **Plotting**: Uses JSON results by default
 
 ## JSON Results Format
@@ -144,8 +161,13 @@ The following benchmark tasks are available:
 2. Clone this repository: `git clone https://github.com/kallewoof/gguf-eval.git`
 3. Change dir: `cd gguf-eval`
 4. Install requirements: `pip install -r requirements.txt`
-5. Get some models.
-6. Run evaluation: `python eval.py model1.gguf model2.gguf ...`
+5. Place your GGUF model files in the `gguf/` folder.
+6. Run evaluation: `python eval.py` (that's it!)
+
+The script will automatically:
+- Find all GGUF files in the `gguf/` folder
+- Run all available benchmark tasks
+- Save results to `results/` directory in JSON format
 
 ### Details
 

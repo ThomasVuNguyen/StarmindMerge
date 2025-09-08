@@ -11,6 +11,26 @@
       "score": "38.00000000%\t[33.3787%, 42.8495%]",
       "execution_time_seconds": 42,
       "score_numeric": 38.0
+    },
+    "Winogrande": {
+      "score": "53.6701 +/- 1.4015",
+      "execution_time_seconds": 20,
+      "score_numeric": 53.6701
+    },
+    "TruthfulQA": {
+      "score": "25.0918 +/- 1.5177",
+      "execution_time_seconds": 35,
+      "score_numeric": 25.0918
+    },
+    "ARC-Combined": {
+      "score": "41.1968 +/- 1.6706",
+      "execution_time_seconds": 21,
+      "score_numeric": 41.1968
+    },
+    "ARC-Challenge": {
+      "score": "27.7592 +/- 2.5941",
+      "execution_time_seconds": 9,
+      "score_numeric": 27.7592
     }
   }
 }

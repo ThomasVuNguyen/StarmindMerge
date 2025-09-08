@@ -15,13 +15,27 @@ import sys
 import os
 
 def main():
-    parser = argparse.ArgumentParser(description="Simple model evaluation - just specify the GGUF file(s)")
-    parser.add_argument("models", nargs="+", help="GGUF model file(s) to evaluate")
-    parser.add_argument("--tasks", default="mmlu", help="Tasks to run (default: mmlu)")
+    parser = argparse.ArgumentParser(description="Simple model evaluation - specify GGUF file(s) or run all models in gguf/ folder")
+    parser.add_argument("models", nargs="*", help="GGUF model file(s) to evaluate (default: all models in gguf/ folder)")
+    parser.add_argument("--tasks", default="all", help="Tasks to run (default: all)")
     parser.add_argument("--plot", action="store_true", help="Generate plot after evaluation")
     parser.add_argument("--quiet", action="store_true", help="Quiet mode")
     
     args = parser.parse_args()
+    
+    # If no models specified, find all GGUF files in gguf/ folder
+    if not args.models:
+        import glob
+        gguf_files = glob.glob("gguf/*.gguf")
+        if not gguf_files:
+            print("Error: No GGUF files found in gguf/ folder and no models specified")
+            print("Please either:")
+            print("  1. Place GGUF files in the gguf/ folder, or")
+            print("  2. Specify model files: python eval.py model1.gguf model2.gguf")
+            sys.exit(1)
+        args.models = gguf_files
+        if not args.quiet:
+            print(f"Found {len(gguf_files)} model(s) in gguf/ folder: {', '.join(gguf_files)}")
     
     # Check if llama.cpp exists
     llama_path = "./llama.cpp"
