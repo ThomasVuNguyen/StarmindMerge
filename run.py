@@ -13,8 +13,9 @@ warnings.filterwarnings("ignore")
 class Smollm2Chat:
     def __init__(self, model_name=
     #"ThomasTheMaker/smollm2-135m-soup1"
-    "ThomasTheMaker/Smollm2-135M-Tulu-3-SFT-Personas-Instruction-Following"
+    # "ThomasTheMaker/Smollm2-135M-Tulu-3-SFT-Personas-Instruction-Following"
     # "HuggingFaceTB/SmolLM2-135M"
+    "ThomasTheMaker/Gemma3-270M-Tulu-3-SFT-Personas-Instruction-Following"
     ):
         """Initialize the chat interface with the smollm2 model"""
         print(f"Loading {model_name}...")
