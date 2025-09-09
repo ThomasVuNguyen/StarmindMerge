@@ -32,11 +32,11 @@ USE_RSLORA = False  # We support rank stabilized LoRA
 LOFTQ_CONFIG = None  # And LoftQ
 
 # Training Configuration - OPTIMIZED FOR RTX 6000
-PER_DEVICE_TRAIN_BATCH_SIZE = 8  # Increased batch size
-GRADIENT_ACCUMULATION_STEPS = 4  # Use GA to mimic batch size!
-WARMUP_STEPS = 100  # Increased warmup
+PER_DEVICE_TRAIN_BATCH_SIZE = 16  # Doubled batch size for better GPU utilization
+GRADIENT_ACCUMULATION_STEPS = 8  # Increased to maintain effective batch size
+WARMUP_STEPS = 200  # Increased warmup for larger batch size
 MAX_STEPS = None  # Set to None for full training
-LEARNING_RATE = 2e-5  # Lower LR for full fine-tuning
+LEARNING_RATE = 3e-5  # Slightly higher LR for faster convergence
 WEIGHT_DECAY = 0.01
 LR_SCHEDULER_TYPE = "cosine"  # Better learning rate schedule
 SEED = 3407
@@ -100,7 +100,7 @@ os.environ["CUDA_LAUNCH_BLOCKING"] = "0"  # Disable for better performance
 os.environ["TORCH_INDUCTOR"] = "1"  # Enable for better performance
 os.environ["TORCHINDUCTOR_MAX_AUTOTUNE"] = "1"  # Enable autotuning
 os.environ["TORCH_COMPILE_DISABLE"] = "0"  # Enable compilation
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True,max_split_size_mb:512"
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True,max_split_size_mb:1024"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Avoid tokenizer warnings
 
 from unsloth import FastModel
@@ -271,7 +271,7 @@ trainer = SFTTrainer(
         warmup_steps=WARMUP_STEPS,
         num_train_epochs=3,  # Multiple epochs for better training
         learning_rate=LEARNING_RATE,
-        logging_steps=10,
+        logging_steps=5,  # More frequent logging for better monitoring
         optim="adamw_torch",  # Better optimizer for full fine-tuning
         weight_decay=WEIGHT_DECAY,
         lr_scheduler_type=LR_SCHEDULER_TYPE,
@@ -281,8 +281,9 @@ trainer = SFTTrainer(
         fp16=False,  # Use bf16 for RTX 6000
         bf16=True,   # Better for RTX 6000
         gradient_checkpointing=True,  # Memory efficient
-        dataloader_num_workers=4,  # Parallel data loading
+        dataloader_num_workers=8,  # Increased parallel data loading
         dataloader_pin_memory=True,  # Faster data transfer
+        dataloader_prefetch_factor=4,  # Prefetch more batches
     ),
 )
 
