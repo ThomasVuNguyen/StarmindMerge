@@ -1,0 +1,36 @@
+{
+  "model_path": "gguf/gm3-270m-code-q8_0.gguf",
+  "model_name": "gm3-270m-code-q8_0",
+  "tasks": {
+    "Hellaswag": {
+      "score": "36.50000000%\t[31.9312%, 41.3256%]",
+      "execution_time_seconds": 50,
+      "score_numeric": 36.5
+    },
+    "Winogrande": {
+      "score": "53.4333 +/- 1.4019",
+      "execution_time_seconds": 26,
+      "score_numeric": 53.4333
+    },
+    "MMLU": {
+      "score": "28.8760 +/- 1.1522",
+      "execution_time_seconds": 87,
+      "score_numeric": 28.876
+    },
+    "TruthfulQA": {
+      "score": "26.3158 +/- 1.5415",
+      "execution_time_seconds": 42,
+      "score_numeric": 26.3158
+    },
+    "ARC-Combined": {
+      "score": "38.8953 +/- 1.6547",
+      "execution_time_seconds": 25,
+      "score_numeric": 38.8953
+    },
+    "ARC-Challenge": {
+      "score": "24.7492 +/- 2.4999",
+      "execution_time_seconds": 11,
+      "score_numeric": 24.7492
+    }
+  }
+}

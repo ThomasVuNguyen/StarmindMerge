@@ -9,10 +9,10 @@ from transformers import TrainerCallback
 # CONFIGURATION VARIABLES - EDIT THESE FOR EASY CUSTOMIZATION
 # =============================================================================
 
-HUB_MODEL_NAME = "ThomasTheMaker/gm3-270m-code"
+HUB_MODEL_NAME = "ThomasTheMaker/gm3-270m-math-full"
 MODEL_NAME = "unsloth/gemma-3-270m-it"
-DATASET_NAME = "ThomasTheMaker/tulu-3-sft-personas-code"
-DATASET_SPLIT = "train[:35000]"  # Use all 150k data rows for RTX 6000
+DATASET_NAME = "ThomasTheMaker/tulu-3-sft-personas-math"
+DATASET_SPLIT = "train[:150000]"  # Use all 150k data rows for RTX 6000
 
 # Model Configuration
 

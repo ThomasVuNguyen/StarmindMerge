@@ -1,4 +1,5 @@
 # GTX 1050 Ti compatibility fixes - disable compilation
+import unsloth
 import os
 import csv
 import json
@@ -6,63 +7,88 @@ from datetime import datetime
 from transformers import TrainerCallback
 
 # =============================================================================
-# CONFIGURATION VARIABLES - EDIT THESE FOR EASY CUSTOMIZATION
+# CONFIGURATION LOADING FROM JSON
 # =============================================================================
-HUB_MODEL_NAME = "ThomasTheMaker/gm3-270m-instruction-following"
-MODEL_NAME = "unsloth/gemma-3-270m-it"
-DATASET_NAME = "ThomasTheMaker/tulu-3-sft-personas-instruction-following"
-DATASET_SPLIT = "train[:30000]"  # Use all 150k data rows for RTX 6000
 
+# Load configuration from JSON file
+with open('algebra.json', 'r') as f:
+    config = json.load(f)
+
+# Extract configuration sections
+model_config = config['model_config']
+dataset_config = config['dataset_config']
+lora_config = config['lora_config']
+training_config = config['training_config']
+inference_config = config['inference_config']
+saving_config = config['saving_config']
+logging_config = config['logging_config']
 
 # Model Configuration
-
-MAX_SEQ_LENGTH = 1024  # Reduce for GTX 1050 Ti
-LOAD_IN_4BIT = False    # Enable 4bit for memory efficiency
-LOAD_IN_8BIT = True   # Disabled to save memory
-FULL_FINETUNING = False  # [NEW!] We have full finetuning now!
-
-# LoRA Configuration
-LORA_R = 64  # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
-LORA_ALPHA = 128
-LORA_DROPOUT = 0  # Supports any, but = 0 is optimized
-LORA_BIAS = "none"  # Supports any, but = "none" is optimized
-USE_GRADIENT_CHECKPOINTING = "unsloth"  # True or "unsloth" for very long context
-RANDOM_STATE = 3407
-USE_RSLORA = False  # We support rank stabilized LoRA
-LOFTQ_CONFIG = None  # And LoftQ
-
-# Training Configuration
-PER_DEVICE_TRAIN_BATCH_SIZE = 2
-GRADIENT_ACCUMULATION_STEPS = 2  # Use GA to mimic batch size!
-WARMUP_STEPS = 5
-MAX_STEPS = None  # Set to None for full training
-LEARNING_RATE = 5e-5  # Reduce to 2e-5 for long training runs
-WEIGHT_DECAY = 0.01
-LR_SCHEDULER_TYPE = "linear"
-SEED = 3407
-OUTPUT_DIR = "outputs"
-REPORT_TO = "none"  # Use this for WandB etc
+HUB_MODEL_NAME = model_config['hub_model_name']
+MODEL_NAME = model_config['base_model_name']
+MAX_SEQ_LENGTH = model_config['max_seq_length']
+LOAD_IN_4BIT = model_config['load_in_4bit']
+LOAD_IN_8BIT = model_config['load_in_8bit']
+FULL_FINETUNING = model_config['full_finetuning']
 
 # Dataset Configuration
-CHAT_TEMPLATE = "gemma3"  # Supported: zephyr, chatml, mistral, llama, alpaca, vicuna, vicuna_old, phi3, llama3, phi4, qwen2.5, gemma3
+DATASET_NAME = dataset_config['dataset_name']
+DATASET_SPLIT = dataset_config['dataset_split']
+CHAT_TEMPLATE = dataset_config['chat_template']
+
+# LoRA Configuration
+'''  Rank to Percentage Table:
+
+  | Rank (r) | LoRA Parameters | % of 270M | Memory Est. |
+  |----------|-----------------|-----------|-------------|
+  | r=8      | 9,533,440       | 3.5%      | ~150MB      |
+  | r=16     | 19,066,880      | 7.1%      | ~300MB      |
+  | r=32     | 38,133,760      | 14.1%     | ~600MB      |
+  | r=64     | 76,267,520      | 28.2%     | ~1.2GB      |
+  | r=128    | 152,535,040     | 56.5%     | ~2.4GB      |
+'''
+LORA_R = lora_config['r']
+LORA_ALPHA = LORA_R * lora_config['alpha_multiplier']
+LORA_DROPOUT = lora_config['dropout']
+LORA_BIAS = lora_config['bias']
+USE_GRADIENT_CHECKPOINTING = lora_config['use_gradient_checkpointing']
+RANDOM_STATE = lora_config['random_state']
+USE_RSLORA = lora_config['use_rslora']
+LOFTQ_CONFIG = lora_config['loftq_config']
+TARGET_MODULES = lora_config['target_modules']
+
+# Training Configuration
+PER_DEVICE_TRAIN_BATCH_SIZE = training_config['per_device_train_batch_size']
+GRADIENT_ACCUMULATION_STEPS = training_config['gradient_accumulation_steps']
+WARMUP_STEPS = training_config['warmup_steps']
+MAX_STEPS = training_config['max_steps']
+NUM_TRAIN_EPOCHS = training_config['num_train_epochs']
+LEARNING_RATE = training_config['learning_rate']
+WEIGHT_DECAY = training_config['weight_decay']
+LR_SCHEDULER_TYPE = training_config['lr_scheduler_type']
+SEED = training_config['seed']
+OUTPUT_DIR = training_config['output_dir']
+REPORT_TO = training_config['report_to']
+OPTIM = training_config['optim']
+LOGGING_STEPS = training_config['logging_steps']
 
 # Inference Configuration
-MAX_NEW_TOKENS = 125
-TEMPERATURE = 1.0
-TOP_P = 0.95
-TOP_K = 64
-DO_SAMPLE = True
+MAX_NEW_TOKENS = inference_config['max_new_tokens']
+TEMPERATURE = inference_config['temperature']
+TOP_P = inference_config['top_p']
+TOP_K = inference_config['top_k']
+DO_SAMPLE = inference_config['do_sample']
 
 # Model Saving Configuration
-SAVE_LOCAL = True
-SAVE_16BIT = True
-SAVE_4BIT = False
-SAVE_LORA = False
-PUSH_TO_HUB = True  # Requires HF_TOKEN in environment
+SAVE_LOCAL = saving_config['save_local']
+SAVE_16BIT = saving_config['save_16bit']
+SAVE_4BIT = saving_config['save_4bit']
+SAVE_LORA = saving_config['save_lora']
+PUSH_TO_HUB = saving_config['push_to_hub']
 
 # CSV Logging Configuration
-CSV_LOG_ENABLED = True
-CSV_LOG_FILE = f"{HUB_MODEL_NAME.replace('/', '_')}_training_metrics.csv"
+CSV_LOG_ENABLED = logging_config['csv_log_enabled']
+CSV_LOG_FILE = f"{HUB_MODEL_NAME}/training_metrics.csv"
 
 # Available Models (for reference)
 FOURBIT_MODELS = [
@@ -173,8 +199,7 @@ model, tokenizer = FastModel.from_pretrained(
 model = FastModel.get_peft_model(
     model,
     r=LORA_R,
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
-                    "gate_proj", "up_proj", "down_proj",],
+    target_modules=TARGET_MODULES,
     lora_alpha=LORA_ALPHA,
     lora_dropout=LORA_DROPOUT,
     bias=LORA_BIAS,
@@ -249,33 +274,49 @@ Now let's train our model. We do 100 steps to speed things up, but you can set `
 
 from trl import SFTTrainer, SFTConfig
 
+# Create model directory and copy config
+import shutil
+os.makedirs(HUB_MODEL_NAME, exist_ok=True)
+
+# Copy the JSON config to the model folder for reproducibility
+config_copy_path = f"{HUB_MODEL_NAME}/config.json"
+shutil.copy2('algebra.json', config_copy_path)
+print(f"Configuration copied to: {config_copy_path}")
+
 # Initialize CSV logging callback
 csv_callback = None
 if CSV_LOG_ENABLED:
     csv_callback = CSVMetricsCallback(CSV_LOG_FILE)
     print(f"CSV logging enabled. Metrics will be saved to: {CSV_LOG_FILE}")
 
+# Prepare training arguments - handle max_steps properly
+training_args = {
+    "dataset_text_field": "text",
+    "per_device_train_batch_size": PER_DEVICE_TRAIN_BATCH_SIZE,
+    "gradient_accumulation_steps": GRADIENT_ACCUMULATION_STEPS,
+    "warmup_steps": WARMUP_STEPS,
+    "learning_rate": LEARNING_RATE,
+    "logging_steps": LOGGING_STEPS,
+    "optim": OPTIM,
+    "weight_decay": WEIGHT_DECAY,
+    "lr_scheduler_type": LR_SCHEDULER_TYPE,
+    "seed": SEED,
+    "output_dir": OUTPUT_DIR,
+    "report_to": REPORT_TO,
+}
+
+# Add either max_steps OR num_train_epochs, not both
+if MAX_STEPS and MAX_STEPS > 0:
+    training_args["max_steps"] = MAX_STEPS
+else:
+    training_args["num_train_epochs"] = NUM_TRAIN_EPOCHS
+
 trainer = SFTTrainer(
     model=model,
     tokenizer=tokenizer,
     train_dataset=dataset,
     eval_dataset=None,  # Can set up evaluation!
-    args=SFTConfig(
-        dataset_text_field="text",
-        per_device_train_batch_size=PER_DEVICE_TRAIN_BATCH_SIZE,
-        gradient_accumulation_steps=GRADIENT_ACCUMULATION_STEPS,
-        warmup_steps=WARMUP_STEPS,
-        num_train_epochs = 1, # Set this for 1 full training run.
-        # max_steps=MAX_STEPS,  # Commented out to avoid conflict
-        learning_rate=LEARNING_RATE,
-        logging_steps=1,
-        optim="adamw_8bit",
-        weight_decay=WEIGHT_DECAY,
-        lr_scheduler_type=LR_SCHEDULER_TYPE,
-        seed=SEED,
-        output_dir=OUTPUT_DIR,
-        report_to=REPORT_TO,
-    ),
+    args=SFTConfig(**training_args),
 )
 
 # Add CSV callback to trainer

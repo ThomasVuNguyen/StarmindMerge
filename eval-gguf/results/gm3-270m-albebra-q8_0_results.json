@@ -1,0 +1,36 @@
+{
+  "model_path": "gguf/gm3-270m-albebra-q8_0.gguf",
+  "model_name": "gm3-270m-albebra-q8_0",
+  "tasks": {
+    "Hellaswag": {
+      "score": "34.75000000%\t[30.2486%, 39.5415%]",
+      "execution_time_seconds": 49,
+      "score_numeric": 34.75
+    },
+    "Winogrande": {
+      "score": "55.8011 +/- 1.3958",
+      "execution_time_seconds": 26,
+      "score_numeric": 55.8011
+    },
+    "MMLU": {
+      "score": "28.6176 +/- 1.1491",
+      "execution_time_seconds": 86,
+      "score_numeric": 28.6176
+    },
+    "TruthfulQA": {
+      "score": "26.5606 +/- 1.5461",
+      "execution_time_seconds": 42,
+      "score_numeric": 26.5606
+    },
+    "ARC-Combined": {
+      "score": "40.1611 +/- 1.6639",
+      "execution_time_seconds": 26,
+      "score_numeric": 40.1611
+    },
+    "ARC-Challenge": {
+      "score": "25.4181 +/- 2.5222",
+      "execution_time_seconds": 11,
+      "score_numeric": 25.4181
+    }
+  }
+}
