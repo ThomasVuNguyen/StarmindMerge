@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Gemma3 270M Inference Script
-Inference script for ThomasTheMaker/gemma-3-270m-tulu-3-sft-personas-instruction-following model
-"""
 
 from unsloth import FastLanguageModel
 from unsloth.chat_templates import get_chat_template
@@ -13,7 +9,7 @@ import os
 def load_model():
     """Load the fine-tuned Gemma3 270M model"""
     model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name="ThomasTheMaker/gemma-3-270m-tulu-3-sft-personas-instruction-following",
+        model_name="ThomasTheMaker/gm3-270m-hard-coded-10x",
         max_seq_length=2048,
         load_in_4bit=False,
     )

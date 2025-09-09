@@ -1,0 +1,36 @@
+{
+  "model_path": "gguf/gm3-270m-math-bf16.gguf",
+  "model_name": "gm3-270m-math-bf16",
+  "tasks": {
+    "Hellaswag": {
+      "score": "34.75000000%\t[30.2486%, 39.5415%]",
+      "execution_time_seconds": 62,
+      "score_numeric": 34.75
+    },
+    "Winogrande": {
+      "score": "54.9329 +/- 1.3984",
+      "execution_time_seconds": 38,
+      "score_numeric": 54.9329
+    },
+    "MMLU": {
+      "score": "28.4884 +/- 1.1476",
+      "execution_time_seconds": 126,
+      "score_numeric": 28.4884
+    },
+    "TruthfulQA": {
+      "score": "24.2350 +/- 1.5001",
+      "execution_time_seconds": 52,
+      "score_numeric": 24.235
+    },
+    "ARC-Combined": {
+      "score": "39.4707 +/- 1.6591",
+      "execution_time_seconds": 36,
+      "score_numeric": 39.4707
+    },
+    "ARC-Challenge": {
+      "score": "26.4214 +/- 2.5541",
+      "execution_time_seconds": 15,
+      "score_numeric": 26.4214
+    }
+  }
+}

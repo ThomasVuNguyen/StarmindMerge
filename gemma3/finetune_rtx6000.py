@@ -1,4 +1,4 @@
-# GTX 1050 Ti compatibility fixes - disable compilation
+# RTX 6000 Ada GPU compatibility fixes - optimized for high performance
 import os
 import csv
 import json
@@ -8,62 +8,62 @@ from transformers import TrainerCallback
 # =============================================================================
 # CONFIGURATION VARIABLES - EDIT THESE FOR EASY CUSTOMIZATION
 # =============================================================================
+
 HUB_MODEL_NAME = "ThomasTheMaker/gm3-270m-code"
 MODEL_NAME = "unsloth/gemma-3-270m-it"
 DATASET_NAME = "ThomasTheMaker/tulu-3-sft-personas-code"
 DATASET_SPLIT = "train[:35000]"  # Use all 150k data rows for RTX 6000
 
-
-
 # Model Configuration
 
-MAX_SEQ_LENGTH = 1024  # Reduce for GTX 1050 Ti
-LOAD_IN_4BIT = False    # Enable 4bit for memory efficiency
-LOAD_IN_8BIT = True   # Disabled to save memory
-FULL_FINETUNING = False  # [NEW!] We have full finetuning now!
+MAX_SEQ_LENGTH = 4096  # Increased for RTX 6000
+LOAD_IN_4BIT = False   # Disabled for better performance
+LOAD_IN_8BIT = False   # Disabled for better performance
+FULL_FINETUNING = True  # Enable full fine-tuning for better results
 
 # LoRA Configuration
-LORA_R = 64  # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
+LORA_R = 64  # Reduced for full fine-tuning
 LORA_ALPHA = 128
-LORA_DROPOUT = 0  # Supports any, but = 0 is optimized
+LORA_DROPOUT = 0.1  # Small dropout for regularization
 LORA_BIAS = "none"  # Supports any, but = "none" is optimized
 USE_GRADIENT_CHECKPOINTING = "unsloth"  # True or "unsloth" for very long context
 RANDOM_STATE = 3407
 USE_RSLORA = False  # We support rank stabilized LoRA
 LOFTQ_CONFIG = None  # And LoftQ
 
-# Training Configuration
-PER_DEVICE_TRAIN_BATCH_SIZE = 2
-GRADIENT_ACCUMULATION_STEPS = 2  # Use GA to mimic batch size!
-WARMUP_STEPS = 5
+# Training Configuration - OPTIMIZED FOR RTX 6000
+PER_DEVICE_TRAIN_BATCH_SIZE = 8  # Increased batch size
+GRADIENT_ACCUMULATION_STEPS = 4  # Use GA to mimic batch size!
+WARMUP_STEPS = 100  # Increased warmup
 MAX_STEPS = None  # Set to None for full training
-LEARNING_RATE = 5e-5  # Reduce to 2e-5 for long training runs
+LEARNING_RATE = 2e-5  # Lower LR for full fine-tuning
 WEIGHT_DECAY = 0.01
-LR_SCHEDULER_TYPE = "linear"
+LR_SCHEDULER_TYPE = "cosine"  # Better learning rate schedule
 SEED = 3407
-OUTPUT_DIR = "outputs"
+OUTPUT_DIR = "outputs_rtx6000"
 REPORT_TO = "none"  # Use this for WandB etc
 
 # Dataset Configuration
 CHAT_TEMPLATE = "gemma3"  # Supported: zephyr, chatml, mistral, llama, alpaca, vicuna, vicuna_old, phi3, llama3, phi4, qwen2.5, gemma3
 
 # Inference Configuration
-MAX_NEW_TOKENS = 125
-TEMPERATURE = 1.0
-TOP_P = 0.95
-TOP_K = 64
+MAX_NEW_TOKENS = 256  # Increased for better responses
+TEMPERATURE = 0.7  # Lower temperature for more focused responses
+TOP_P = 0.9
+TOP_K = 50
 DO_SAMPLE = True
 
-# Model Saving Configuration
+# Model Saving Configuration - Auto-generated from dataset name
 SAVE_LOCAL = True
 SAVE_16BIT = True
 SAVE_4BIT = False
-SAVE_LORA = False
+SAVE_LORA = True  # Also save LoRA adapters
 PUSH_TO_HUB = True  # Requires HF_TOKEN in environment
 
 # CSV Logging Configuration
 CSV_LOG_ENABLED = True
 CSV_LOG_FILE = f"{HUB_MODEL_NAME.replace('/', '_')}_training_metrics.csv"
+
 
 # Available Models (for reference)
 FOURBIT_MODELS = [
@@ -93,21 +93,23 @@ except ImportError:
     print("python-dotenv not installed. Using system environment variables only.")
     print("To install: pip install python-dotenv")
 
-# Set CUDA environment variables for GTX 1050 Ti compatibility
-os.environ["TORCH_USE_CUDA_DSA"] = "1"
-os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
-os.environ["TORCH_INDUCTOR"] = "0"
-os.environ["TORCHINDUCTOR_MAX_AUTOTUNE"] = "0"
-os.environ["TORCH_COMPILE_DISABLE"] = "1"
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+# Set CUDA environment variables for RTX 6000 compatibility
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Use first GPU
+os.environ["TORCH_USE_CUDA_DSA"] = "0"  # Disable for better performance
+os.environ["CUDA_LAUNCH_BLOCKING"] = "0"  # Disable for better performance
+os.environ["TORCH_INDUCTOR"] = "1"  # Enable for better performance
+os.environ["TORCHINDUCTOR_MAX_AUTOTUNE"] = "1"  # Enable autotuning
+os.environ["TORCH_COMPILE_DISABLE"] = "0"  # Enable compilation
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True,max_split_size_mb:512"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Avoid tokenizer warnings
 
 from unsloth import FastModel
 import torch
 
-# Disable Triton and dynamic compilation
-torch._dynamo.config.suppress_errors = True
-torch._dynamo.reset()
-torch._dynamo.config.disable = True
+# Enable optimizations for RTX 6000
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+torch.backends.cudnn.benchmark = True
 
 # =============================================================================
 # CSV LOGGING CALLBACK
@@ -171,20 +173,21 @@ model, tokenizer = FastModel.from_pretrained(
 
 """We now add LoRA adapters so we only need to update a small amount of parameters!"""
 
-model = FastModel.get_peft_model(
-    model,
-    r=LORA_R,
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
-                    "gate_proj", "up_proj", "down_proj",],
-    lora_alpha=LORA_ALPHA,
-    lora_dropout=LORA_DROPOUT,
-    bias=LORA_BIAS,
-    # [NEW] "unsloth" uses 30% less VRAM, fits 2x larger batch sizes!
-    use_gradient_checkpointing=USE_GRADIENT_CHECKPOINTING,
-    random_state=RANDOM_STATE,
-    use_rslora=USE_RSLORA,
-    loftq_config=LOFTQ_CONFIG,
-)
+if not FULL_FINETUNING:
+    model = FastModel.get_peft_model(
+        model,
+        r=LORA_R,
+        target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                        "gate_proj", "up_proj", "down_proj",],
+        lora_alpha=LORA_ALPHA,
+        lora_dropout=LORA_DROPOUT,
+        bias=LORA_BIAS,
+        # [NEW] "unsloth" uses 30% less VRAM, fits 2x larger batch sizes!
+        use_gradient_checkpointing=USE_GRADIENT_CHECKPOINTING,
+        random_state=RANDOM_STATE,
+        use_rslora=USE_RSLORA,
+        loftq_config=LOFTQ_CONFIG,
+    )
 
 """<a name="Data"></a>
 ### Data Prep
@@ -245,7 +248,7 @@ dataset[100]['text']
 
 """<a name="Train"></a>
 ### Train the model
-Now let's train our model. We do 100 steps to speed things up, but you can set `num_train_epochs=1` for a full run, and turn off `max_steps=None`.
+Now let's train our model. We do multiple epochs for better training with RTX 6000.
 """
 
 from trl import SFTTrainer, SFTConfig
@@ -266,16 +269,20 @@ trainer = SFTTrainer(
         per_device_train_batch_size=PER_DEVICE_TRAIN_BATCH_SIZE,
         gradient_accumulation_steps=GRADIENT_ACCUMULATION_STEPS,
         warmup_steps=WARMUP_STEPS,
-        num_train_epochs = 1, # Set this for 1 full training run.
-        # max_steps=MAX_STEPS,  # Commented out to avoid conflict
+        num_train_epochs=3,  # Multiple epochs for better training
         learning_rate=LEARNING_RATE,
-        logging_steps=1,
-        optim="adamw_8bit",
+        logging_steps=10,
+        optim="adamw_torch",  # Better optimizer for full fine-tuning
         weight_decay=WEIGHT_DECAY,
         lr_scheduler_type=LR_SCHEDULER_TYPE,
         seed=SEED,
         output_dir=OUTPUT_DIR,
         report_to=REPORT_TO,
+        fp16=False,  # Use bf16 for RTX 6000
+        bf16=True,   # Better for RTX 6000
+        gradient_checkpointing=True,  # Memory efficient
+        dataloader_num_workers=4,  # Parallel data loading
+        dataloader_pin_memory=True,  # Faster data transfer
     ),
 )
 
@@ -357,7 +364,7 @@ if CSV_LOG_ENABLED and csv_callback and csv_callback.metrics_data:
 
 """<a name="Inference"></a>
 ### Inference
-Let's run the model via Unsloth native inference! According to the `Gemma-3` team, the recommended settings for inference are `temperature = 1.0, top_p = 0.95, top_k = 64`
+Let's run the model via Unsloth native inference! According to the `Gemma-3` team, the recommended settings for inference are `temperature = 0.7, top_p = 0.9, top_k = 50`
 """
 
 messages = [
@@ -394,7 +401,7 @@ print(generated_text)
 ### Saving, loading finetuned models
 To save the final model as LoRA adapters, either use Huggingface's `push_to_hub` for an online save or `save_pretrained` for a local save.
 
-**[NOTE]** This ONLY saves the LoRA adapters, and not the full model. To save to 16bit or GGUF, scroll down!
+**[NOTE]** This saves the full model for full fine-tuning, and LoRA adapters if enabled.
 """
 
 # Local saving

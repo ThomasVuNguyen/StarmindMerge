@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "timestamp": "2025-09-08T20:35:44.658297",
-    "total_models": 6,
+    "timestamp": "2025-09-09T12:02:07.153125",
+    "total_models": 8,
     "version": "1.0"
   },
   "models": {
@@ -218,6 +218,78 @@
           "score": "27.7592 +/- 2.5941",
           "execution_time_seconds": 38,
           "score_numeric": 27.7592
+        }
+      }
+    },
+    "gm3-270m-math-bf16": {
+      "model_path": "gguf/gm3-270m-math-bf16.gguf",
+      "model_name": "gm3-270m-math-bf16",
+      "tasks": {
+        "Hellaswag": {
+          "score": "34.75000000%\t[30.2486%, 39.5415%]",
+          "execution_time_seconds": 62,
+          "score_numeric": 34.75
+        },
+        "Winogrande": {
+          "score": "54.9329 +/- 1.3984",
+          "execution_time_seconds": 38,
+          "score_numeric": 54.9329
+        },
+        "MMLU": {
+          "score": "28.4884 +/- 1.1476",
+          "execution_time_seconds": 126,
+          "score_numeric": 28.4884
+        },
+        "TruthfulQA": {
+          "score": "24.2350 +/- 1.5001",
+          "execution_time_seconds": 52,
+          "score_numeric": 24.235
+        },
+        "ARC-Combined": {
+          "score": "39.4707 +/- 1.6591",
+          "execution_time_seconds": 36,
+          "score_numeric": 39.4707
+        },
+        "ARC-Challenge": {
+          "score": "26.4214 +/- 2.5541",
+          "execution_time_seconds": 15,
+          "score_numeric": 26.4214
+        }
+      }
+    },
+    "gm3-270m-math-q8_0": {
+      "model_path": "gguf/gm3-270m-math-q8_0.gguf",
+      "model_name": "gm3-270m-math-q8_0",
+      "tasks": {
+        "Hellaswag": {
+          "score": "35.25000000%\t[30.7287%, 40.0519%]",
+          "execution_time_seconds": 40,
+          "score_numeric": 35.25
+        },
+        "Winogrande": {
+          "score": "54.2226 +/- 1.4002",
+          "execution_time_seconds": 20,
+          "score_numeric": 54.2226
+        },
+        "MMLU": {
+          "score": "28.6822 +/- 1.1499",
+          "execution_time_seconds": 69,
+          "score_numeric": 28.6822
+        },
+        "TruthfulQA": {
+          "score": "24.4798 +/- 1.5052",
+          "execution_time_seconds": 34,
+          "score_numeric": 24.4798
+        },
+        "ARC-Combined": {
+          "score": "39.9310 +/- 1.6623",
+          "execution_time_seconds": 20,
+          "score_numeric": 39.931
+        },
+        "ARC-Challenge": {
+          "score": "25.0836 +/- 2.5112",
+          "execution_time_seconds": 9,
+          "score_numeric": 25.0836
         }
       }
     }
