@@ -1,0 +1,36 @@
+{
+  "model_path": "gguf/gemma-3-270m-tulu-3-sft-personas-instruction-following-bf16.gguf",
+  "model_name": "gemma-3-270m-tulu-3-sft-personas-instruction-following-bf16",
+  "tasks": {
+    "Hellaswag": {
+      "score": "38.25000000%\t[33.6205%, 43.1031%]",
+      "execution_time_seconds": 65,
+      "score_numeric": 38.25
+    },
+    "Winogrande": {
+      "score": "54.1437 +/- 1.4004",
+      "execution_time_seconds": 39,
+      "score_numeric": 54.1437
+    },
+    "MMLU": {
+      "score": "29.2636 +/- 1.1568",
+      "execution_time_seconds": 130,
+      "score_numeric": 29.2636
+    },
+    "TruthfulQA": {
+      "score": "24.8470 +/- 1.5127",
+      "execution_time_seconds": 54,
+      "score_numeric": 24.847
+    },
+    "ARC-Combined": {
+      "score": "40.0460 +/- 1.6631",
+      "execution_time_seconds": 37,
+      "score_numeric": 40.046
+    },
+    "ARC-Challenge": {
+      "score": "26.4214 +/- 2.5541",
+      "execution_time_seconds": 15,
+      "score_numeric": 26.4214
+    }
+  }
+}

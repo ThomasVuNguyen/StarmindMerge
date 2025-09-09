@@ -8,12 +8,12 @@ import os
 # Model Configuration
 MODEL_NAME = "unsloth/gemma-3-270m-it"
 MAX_SEQ_LENGTH = 1024  # Reduce for GTX 1050 Ti
-LOAD_IN_4BIT = True    # Enable 4bit for memory efficiency
-LOAD_IN_8BIT = False   # Disabled to save memory
+LOAD_IN_4BIT = False    # Enable 4bit for memory efficiency
+LOAD_IN_8BIT = True   # Disabled to save memory
 FULL_FINETUNING = False  # [NEW!] We have full finetuning now!
 
 # LoRA Configuration
-LORA_R = 128  # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
+LORA_R = 64  # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
 LORA_ALPHA = 128
 LORA_DROPOUT = 0  # Supports any, but = 0 is optimized
 LORA_BIAS = "none"  # Supports any, but = "none" is optimized
@@ -26,7 +26,7 @@ LOFTQ_CONFIG = None  # And LoftQ
 PER_DEVICE_TRAIN_BATCH_SIZE = 2
 GRADIENT_ACCUMULATION_STEPS = 2  # Use GA to mimic batch size!
 WARMUP_STEPS = 5
-MAX_STEPS = 100  # Set to None for full training
+MAX_STEPS = None  # Set to None for full training
 LEARNING_RATE = 5e-5  # Reduce to 2e-5 for long training runs
 WEIGHT_DECAY = 0.01
 LR_SCHEDULER_TYPE = "linear"
@@ -35,8 +35,8 @@ OUTPUT_DIR = "outputs"
 REPORT_TO = "none"  # Use this for WandB etc
 
 # Dataset Configuration
-DATASET_NAME = "ThomasTheMaker/tulu-3-hard-coded-10x"
-DATASET_SPLIT = "train[:240]"  # Adjust size as needed
+DATASET_NAME = "ThomasTheMaker/tulu-3-sft-personas-math"
+DATASET_SPLIT = "train[:150000]"  # Adjust size as needed
 CHAT_TEMPLATE = "gemma3"  # Supported: zephyr, chatml, mistral, llama, alpaca, vicuna, vicuna_old, phi3, llama3, phi4, qwen2.5, gemma3
 
 # Inference Configuration
@@ -52,7 +52,7 @@ SAVE_16BIT = True
 SAVE_4BIT = False
 SAVE_LORA = False
 PUSH_TO_HUB = True  # Requires HF_TOKEN in environment
-HUB_MODEL_NAME = "ThomasTheMaker/gemma-3-270m-tulu-3-hard-coded-10x"
+HUB_MODEL_NAME = "ThomasTheMaker/gemma-3-270m-tulu-3-sft-personas-math"
 
 # Available Models (for reference)
 FOURBIT_MODELS = [
@@ -201,8 +201,8 @@ trainer = SFTTrainer(
         per_device_train_batch_size=PER_DEVICE_TRAIN_BATCH_SIZE,
         gradient_accumulation_steps=GRADIENT_ACCUMULATION_STEPS,
         warmup_steps=WARMUP_STEPS,
-        # num_train_epochs = 1, # Set this for 1 full training run.
-        max_steps=MAX_STEPS,
+        num_train_epochs = 1, # Set this for 1 full training run.
+        # max_steps=MAX_STEPS,  # Commented out to avoid conflict
         learning_rate=LEARNING_RATE,
         logging_steps=1,
         optim="adamw_8bit",
